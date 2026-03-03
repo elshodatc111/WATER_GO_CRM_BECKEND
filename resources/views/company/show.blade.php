@@ -222,8 +222,20 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title">Firmaga yangi maxsulot qo'shish</h2>
-            <form action="" method="post">
-            <input type="hidden" name="company_id" value="{{ $company['id'] }}">
+            <form action="{{ route('product_create') }}" method="post" enctype="multipart/form-data">
+              @csrf 
+              <input type="hidden" name="company_id" value="{{ $company['id'] }}">
+              <label for="name" class="mb-2">Maxsulot nomi</label>
+              <input type="text" name="name" required class="form-control">
+              <label for="description" class="my-2">Maxsulot haqida</label>
+              <textarea name="description" required class="form-control"></textarea>
+              <label for="price" class="my-2">Maxsulot narxi</label>
+              <input type="text" name="price" class="form-control" id="amount2" required>
+              <label for="image" class="my-2">Maxsulot rasmi(256x256)</label>
+              <input type="file" name="image" required class="form-control">
+              <label for="image_banner" class="my-2">Maxsulot banner(1080x512)</label>
+              <input type="file" name="image_banner" required class="form-control">
+              <button type="submit" class="btn btn-outline-primary w-100 mt-3">Saqlash</button>
             </form>
           </div>
         </div>
@@ -232,6 +244,68 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title">Firma barcha maxsulotlari</h2>
+            <div class="notes-wrapper" style="max-height: 460px; overflow-y: auto; overflow-x: hidden;">
+              <div class="table-responsive">
+                <table class="table table-bordered" style="font-size: 14px">
+                  <thead>
+                    <tr class="text-center">
+                      <th>#</th>
+                      <th>Maxsulot rasmi</th>
+                      <th>Maxsulot nomi</th>
+                      <th>Maxsulot narxi</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($products as $item)
+                      <tr>
+                        <td class="text-center">{{ $loop->index+1 }}</td>
+                        <td class="text-center">
+                          <img src="{{ asset($item['image']) }}" style="width: 36px">
+                        </td>
+                        <td><a href="#">{{ $item['name'] }}</a></td>
+                        <td>{{ $item['price'] }}</td>
+                        <td>
+                          @if($item['is_active']==true)                          
+                            <span class="badge bg-success">
+                              Aktiv
+                            </span>
+                          @else                          
+                            <span class="badge bg-danger">
+                              Bloklangan
+                            </span>
+                          @endif
+                        </td>
+                        <td>
+                          <div class="d-flex justify-content-center align-items-center gap-2">
+                            <form action="{{ route('product_toggle_status') }}" method="POST">
+                              @csrf
+                              <input type="hidden" name="id" value="{{ $item['id'] }}">
+                              @if($item['is_active'])
+                                  <button class="btn btn-sm btn-outline-warning" title="Bloklash"> <i class="bi bi-person-x"></i> </button>
+                              @else
+                                  <button class="btn btn-sm btn-outline-success" title="Aktivlashtirish"> <i class="bi bi-person-check"></i> </button>
+                              @endif
+                            </form>
+                            <form action="{{ route('product_delete') }}" method="POST">
+                              @csrf
+                              @method('DELETE')
+                              <input type="hidden" name="id" value="{{ $item['id'] }}">
+                              <button class="btn btn-sm btn-outline-danger" title="O‘chirish" onclick="return confirm('Rostdan ham o‘chirmoqchimisiz?')"> <i class="bi bi-trash"></i> </button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    @empty
+                      <tr>
+                        <td colspan="6" class="text-center">Maxsulotlar mavjud emas</td>
+                      </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>

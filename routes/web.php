@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\web\{AuthController, CompanyController, HomeController};
+use App\Http\Controllers\web\{AuthController, CompanyController, HomeController, ProductController};
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login',[AuthController::class, 'showLogin'])->name('login');
@@ -20,5 +20,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::POST('/company/emploes/toggle-status', [CompanyController::class, 'toggleEmployeeStatus'])->name('companye_emploes_toggle_status');
     Route::POST('/company/emploes/resset-password', [CompanyController::class, 'resetEmployeePassword'])->name('companye_emploes_resset_password');
     Route::delete('/company/emploes/delete', [CompanyController::class, 'deleteEmployee'])->name('companye_emploes_delete');
+
+    Route::post('/product/create', [ProductController::class, 'store'])->name('product_create');
+    Route::post('/product/toggle_status', [ProductController::class, 'toggleProductStatus'])->name('product_toggle_status');
+    Route::delete('/product/delete', [ProductController::class, 'deleteProduct'])->name('product_delete');
 
 });

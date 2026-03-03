@@ -10,6 +10,7 @@ use App\Http\Requests\Web\Company\UpdateCompanyBannerRequest;
 use App\Http\Requests\Web\Company\UpdateCompanyLogoRequest;
 use App\Http\Requests\Web\Company\UpdateCompanyRequest;
 use App\Models\Company;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -55,7 +56,8 @@ class CompanyController extends Controller{
     public function show($id){
         $company = Company::findOrFail($id);
         $users = User::where('company_id',$id)->orderby('role','asc')->get();
-        return view('company.show',compact('company','users'));
+        $products = Product::where('company_id',$id)->get();
+        return view('company.show',compact('company','users','products'));
     }
 
     public function update(UpdateCompanyRequest $request){
