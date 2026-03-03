@@ -264,7 +264,7 @@
                         <td class="text-center">
                           <img src="{{ asset($item['image']) }}" style="width: 36px">
                         </td>
-                        <td><a href="#">{{ $item['name'] }}</a></td>
+                        <td><a href="{{ route('product_show', $item['id'] ) }}">{{ $item['name'] }}</a></td>
                         <td>{{ $item['price'] }}</td>
                         <td>
                           @if($item['is_active']==true)                          

@@ -24,5 +24,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/product/create', [ProductController::class, 'store'])->name('product_create');
     Route::post('/product/toggle_status', [ProductController::class, 'toggleProductStatus'])->name('product_toggle_status');
     Route::delete('/product/delete', [ProductController::class, 'deleteProduct'])->name('product_delete');
+    Route::get('/product/show/{id}', [ProductController::class, 'show'])->name('product_show'); // 
+    Route::post('/product/update', [ProductController::class, 'update'])->name('product_update');
+    Route::post('/product/update/image', [ProductController::class, 'updateImage'])->name('product_update_image');
+    Route::post('/product/update/banner', [ProductController::class, 'updateBanner'])->name('product_update_banner');
 
 });
