@@ -16,5 +16,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::POST('/company/update/logo', [CompanyController::class, 'updateLogo'])->name('companye_update_logo');
     Route::POST('/company/update/banner', [CompanyController::class, 'updateBanner'])->name('companye_update_banner');
     Route::POST('/company/update/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companye_update_toggle_status');
+    Route::POST('/company/emploes/create', [CompanyController::class, 'storeEmployee'])->name('companye_create_emploes');
+    Route::POST('/company/emploes/toggle-status', [CompanyController::class, 'toggleEmployeeStatus'])->name('companye_emploes_toggle_status');
+    Route::POST('/company/emploes/resset-password', [CompanyController::class, 'resetEmployeePassword'])->name('companye_emploes_resset_password');
+    Route::delete('/company/emploes/delete', [CompanyController::class, 'deleteEmployee'])->name('companye_emploes_delete');
 
 });

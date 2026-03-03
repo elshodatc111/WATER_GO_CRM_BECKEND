@@ -222,6 +222,9 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title">Firmaga yangi maxsulot qo'shish</h2>
+            <form action="" method="post">
+            <input type="hidden" name="company_id" value="{{ $company['id'] }}">
+            </form>
           </div>
         </div>
       </div>
@@ -238,6 +241,21 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title">Fermaga yangi hodim qo'shish</h2>
+            <form action="{{ route('companye_create_emploes') }}" method="post">
+              @csrf 
+              <input type="hidden" name="company_id" value="{{ $company['id'] }}">
+              <label for="name" class="mb-2">Firma hodimi</label>
+              <input type="text" name="name" class="form-control">
+              <label for="phone" class="my-2">Firma hodimi telefon raqami</label>
+              <input type="text" name="phone" class="form-control phone" value="+998" required>
+              <label for="role" class="my-2">Firma lavozimi</label>
+              <select name="role" class="form-control" required>
+                <option value="">Tanlang...</option>
+                <option value="director">Direktor</option>
+                <option value="courier">Xaydavchi</option>
+              </select>
+              <button class="btn btn-outline-primary mt-4 w-100" type="submit">Saqlash</button>
+            </form>
           </div>
         </div>
       </div>
@@ -245,6 +263,77 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title">Firma barcha hodimlari</h2>
+            <div class="notes-wrapper" style="max-height: 290px; overflow-y: auto; overflow-x: hidden;">
+              <div class="table-responsive">
+                <table class="table table-bordered" style="font-size: 14px">
+                  <thead>
+                    <tr class="text-center">
+                      <th>#</th>
+                      <th>FIO</th>
+                      <th>Telefon</th>
+                      <th>Lavozimi</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($users as $item)
+                      <tr>
+                        <td class="text-center">{{ $loop->index+1 }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td class="text-center">{{ $item['phone'] }}</td>
+                        <td class="text-center">
+                          @if($item['role']=='director')
+                            Direktor
+                          @else
+                            Xaydovchi
+                          @endif
+                        </td>
+                        <td class="text-center">
+                          @if($item['is_active']==true)                          
+                            <span class="badge bg-success">
+                              Aktiv
+                            </span>
+                          @else                          
+                            <span class="badge bg-danger">
+                              Bloklangan
+                            </span>
+                          @endif
+                        </td>
+                        <td>
+                          <div class="d-flex justify-content-center align-items-center gap-2">
+                            <form action="{{ route('companye_emploes_toggle_status') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $item['id'] }}">
+                                @if($item['is_active'])
+                                    <button class="btn btn-sm btn-outline-warning" title="Bloklash"> <i class="bi bi-person-x"></i> </button>
+                                @else
+                                    <button class="btn btn-sm btn-outline-success" title="Aktivlashtirish"> <i class="bi bi-person-check"></i> </button>
+                                @endif
+                            </form>
+                            <form action="{{ route('companye_emploes_resset_password') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $item['id'] }}">
+                                <button class="btn btn-sm btn-outline-primary" title="Parolni yangilash"> <i class="bi bi-key"></i> </button>
+                            </form>
+                            <form action="{{ route('companye_emploes_delete') }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="id" value="{{ $item['id'] }}">
+                                <button class="btn btn-sm btn-outline-danger" title="O‘chirish" onclick="return confirm('Rostdan ham o‘chirmoqchimisiz?')"> <i class="bi bi-trash"></i> </button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    @empty
+                    <tr>
+                      <td colspan="6" class="text-center">Hodimlar mavjud emas.</td>
+                    </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
