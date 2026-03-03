@@ -60,4 +60,8 @@ class User extends Authenticatable{
     public function scopeForCompany($query, $companyId){
         return $query->where('company_id', $companyId);
     }
+    public function devices(){
+        return $this->hasMany(UserDevice::class);
+    }
+    
 }
