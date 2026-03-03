@@ -22,7 +22,13 @@ use Illuminate\Http\Request;
 class CompanyController extends Controller{
 
     public function companyee(){
-        $companyee = Company::select('id','company_name','direktor','balance','service_fee','rating','rating_count','is_active')->get();
+        $companyee = Company::withCount([
+            'users as employees_count' => function ($query) {
+                $query->whereIn('role', ['director','courier'])
+                    ->whereNull('deleted_at');
+            },
+            'products as products_count'
+        ])->get();
         return view('company.index',compact('companyee'));
     }
 

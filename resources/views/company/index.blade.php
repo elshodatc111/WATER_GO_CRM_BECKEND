@@ -47,8 +47,8 @@
                     <td class="text-center">{{ $loop->index + 1 }}</td>
                     <td><a href="{{ route('companye_show', $item->id) }}">{{ $item->company_name }}</a></td>
                     <td>{{ $item->direktor }}</td>
-                    <td class="text-center">0</td>
-                    <td class="text-center">0</td>
+                    <td class="text-center">{{ $item->employees_count }}</td>
+                    <td class="text-center">{{ $item->products_count }}</td>
                     <td class="text-center">{{ number_format($item->balance, 2, '.', ' ') }}</td>
                     <td class="text-center">{{ number_format($item->service_fee, 2, '.', ' ') }}</td>
                     <td class="text-center">{{ $item->rating }} ({{ $item->rating_count }})</td>

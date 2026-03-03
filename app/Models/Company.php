@@ -34,6 +34,18 @@ class Company extends Model{
         'balance' => 'decimal:7',
         'service_fee' => 'decimal:7',
     ];
+
+    public function users(){
+        return $this->hasMany(User::class);
+    }
+
+    public function products(){
+        return $this->hasMany(Product::class);
+    }
+
+    public function balanceTransactions(){
+        return $this->hasMany(CompanyBalanceTransaction::class);
+    }
     
     public function scopeActive(Builder $query): Builder{
         return $query->where('is_active', true);
