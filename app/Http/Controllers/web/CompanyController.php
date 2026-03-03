@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\web\company\DepositCompanyBalanceRequest;
 use App\Http\Requests\Web\Company\StoreCompanyEmployeeRequest;
 use App\Http\Requests\web\company\StoreCompanyRequest;
 use App\Http\Requests\Web\Company\ToggleCompanyStatusRequest;
@@ -10,6 +11,7 @@ use App\Http\Requests\Web\Company\UpdateCompanyBannerRequest;
 use App\Http\Requests\Web\Company\UpdateCompanyLogoRequest;
 use App\Http\Requests\Web\Company\UpdateCompanyRequest;
 use App\Models\Company;
+use App\Models\CompanyBalanceTransaction;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -57,7 +59,8 @@ class CompanyController extends Controller{
         $company = Company::findOrFail($id);
         $users = User::where('company_id',$id)->orderby('role','asc')->get();
         $products = Product::where('company_id',$id)->get();
-        return view('company.show',compact('company','users','products'));
+        $transactions = CompanyBalanceTransaction::with('creator')->where('company_id', $id)->latest()->get();
+        return view('company.show',compact('company','users','products','transactions'));
     }
 
     public function update(UpdateCompanyRequest $request){
@@ -172,6 +175,31 @@ class CompanyController extends Controller{
         }
         $employee->delete();
         return back()->with('success', 'Hodim muvaffaqiyatli o‘chirildi.');
+    }
+
+    public function deposit(DepositCompanyBalanceRequest $request){
+        DB::transaction(function () use ($request) {
+            $company = Company::lockForUpdate()->findOrFail($request->company_id);
+            $oldBalance = $company->balance;
+            if ($request->type === 'return') {
+                $newBalance = $oldBalance - $request->amount;
+            } else {
+                $newBalance = $oldBalance + $request->amount;
+            }
+            $company->update([
+                'balance' => $newBalance
+            ]);
+            CompanyBalanceTransaction::create([
+                'company_id' => $company->id,
+                'created_by' => auth()->id(),
+                'type' => $request->type,
+                'amount' => $request->amount,
+                'balance_joriy' => $oldBalance,
+                'balance_kiyingi' => $newBalance,
+                'description' => $request->description,
+            ]);
+        });
+        return back()->with('success', 'Balans muvaffaqiyatli yangilandi.');
     }
 
 }

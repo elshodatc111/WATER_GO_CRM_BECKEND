@@ -20,6 +20,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::POST('/company/emploes/toggle-status', [CompanyController::class, 'toggleEmployeeStatus'])->name('companye_emploes_toggle_status');
     Route::POST('/company/emploes/resset-password', [CompanyController::class, 'resetEmployeePassword'])->name('companye_emploes_resset_password');
     Route::delete('/company/emploes/delete', [CompanyController::class, 'deleteEmployee'])->name('companye_emploes_delete');
+    Route::POST('/company/create/deposit', [CompanyController::class, 'deposit'])->name('companye_create_deposit');
 
     Route::post('/product/create', [ProductController::class, 'store'])->name('product_create');
     Route::post('/product/toggle_status', [ProductController::class, 'toggleProductStatus'])->name('product_toggle_status');

@@ -416,40 +416,106 @@
 
 
 
-<div class="modal" id="create_paymart" tabindex="-1">
-  <form action="#" method="post">
-    @csrf 
-    <div class="modal-dialog">
-      <div class="modal-content">
+<div class="modal fade" id="create_paymart" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ route('companye_create_deposit') }}" method="POST">
+        @csrf
         <div class="modal-header">
-          <h5 class="modal-title">Filrma Balansini to'ldirish</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Firma balansini to‘ldirish</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          sasa
+          <input type="hidden" name="company_id" value="{{ $company['id'] }}">
+          <label class="form-label">To‘lov turi</label>
+          <select name="type" class="form-select @error('type') is-invalid @enderror" required>
+              <option value="">Tanlang...</option>
+              <option value="naqt" {{ old('type') == 'naqt' ? 'selected' : '' }}>Naqt</option>
+              <option value="card" {{ old('type') == 'card' ? 'selected' : '' }}>Karta </option>
+              <option value="return" {{ old('type') == 'return' ? 'selected' : '' }}>Qaytarish</option>
+          </select>
+          @error('type')
+              <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+          <label class="form-label mt-3">Miqdor (so‘m)</label>
+          <input type="text" name="amount" value="{{ old('amount') }}" id="amount1" class="form-control @error('amount') is-invalid @enderror" placeholder="Masalan: 100 000" required>
+          @error('amount')
+              <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+          <label class="form-label mt-3">Izoh (ixtiyoriy)</label>
+          <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3">{{ old('description') }}</textarea>
+          @error('description')
+              <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-          <button type="submit" class="btn btn-primary">Saqlash</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Bekor qilish </button>
+          <button type="submit" class="btn btn-success"> <i class="bi bi-check-circle me-1"></i> Saqlash </button>
         </div>
-      </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
 
 <div class="modal fade" id="firmaBalansTarixi" tabindex="-1">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Firma balansi tarixi</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"> <i class="bi bi-clock-history me-2"></i> Firma balansi tarixi </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        Non omnis incidunt qui sed occaecati magni asperiores est mollitia. Soluta at et reprehenderit. Placeat autem numquam et fuga numquam. Tempora in facere consequatur sit dolor ipsum. Consequatur nemo amet incidunt est facilis. Dolorem neque recusandae quo sit molestias sint dignissimos.
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Turi</th>
+                <th>Miqdor</th>
+                <th>Oldingi</th>
+                <th>Keyingi</th>
+                <th>Admin</th>
+                <th>Sana</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($transactions as $item)
+                <tr>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>
+                    @if($item->type == 'naqt')
+                      <span class="badge bg-success">Naqt</span>
+                    @elseif($item->type == 'card')
+                      <span class="badge bg-primary">Karta</span>
+                    @else 
+                      <span class="badge bg-danger">Qaytarish</span>
+                    @endif
+                  </td>
+                  <td>
+                    @if($item->type == 'return')
+                      <span class="fw-bold text-danger"> - {{ number_format($item->amount, 0, ',', ' ') }} </span>
+                    @else
+                      <span class="fw-bold text-success"> + {{ number_format($item->amount, 0, ',', ' ') }} </span>
+                    @endif
+                  </td>
+                  <td> {{ number_format($item->balance_joriy, 0, ',', ' ') }} </td>
+                  <td> {{ number_format($item->balance_kiyingi, 0, ',', ' ') }} </td>
+                  <td> <span class="text-muted"> {{ $item->creator->name ?? '-' }} </span> </td>
+                  <td> {{ $item->created_at->format('d.m.Y H:i') }} </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-1"></i> Hozircha tranzaksiya mavjud emas
+                  </td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Yopish </button>
       </div>
     </div>
   </div>
