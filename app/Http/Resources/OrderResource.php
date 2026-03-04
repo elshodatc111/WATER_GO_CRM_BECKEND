@@ -19,8 +19,18 @@ class OrderResource extends JsonResource{
             'payment_method' => $this->payment_method,
             'payment_status' => $this->payment_status,
             'address' => $this->address,
+            'courier_comment' => $this->courier_comment,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
+            'client' => [
+                'name' => $this->user->name,
+                'phone' => $this->user->phone,
+            ],
+            'location' => [
+                'latitude' => $this->latitude,
+                'longitude' => $this->longitude,
+                'address' => $this->address,
+            ],
         ];
     }
 }
