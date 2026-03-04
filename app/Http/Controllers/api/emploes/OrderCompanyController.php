@@ -5,9 +5,15 @@ namespace App\Http\Controllers\api\emploes;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class OrderCompanyController extends Controller{
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService){
+        $this->notificationService = $notificationService;
+    }
     // Barcha buyurtmalar
     public function adminOrders(Request $request){
         $user = $request->user();
@@ -34,6 +40,7 @@ class OrderCompanyController extends Controller{
     public function approveOrderByDirector(Request $request, $id){
         $order = Order::where('company_id', $request->user()->company_id)->where('status', 'pending')->findOrFail($id);
         $order->update(['status' => 'qabul_qilindi']);
+        $this->notificationService->handleOrderStatusNotification($order->id, 'qabul_qilindi');
         return response()->json([
             'status' => true,
             'message' => 'Buyurtma tasdiqlandi. Endi kuryerlar uni qabul qilishi mumkin.',
@@ -54,6 +61,7 @@ class OrderCompanyController extends Controller{
             'courier_id' => $user->id,
             'status' => 'yetkazilmoqda'
         ]);
+        $this->notificationService->handleOrderStatusNotification($order->id, 'yetkazilmoqda');
         return response()->json([
             'status' => true,
             'message' => 'Buyurtma muvaffaqiyatli biriktirildi. Oq yo\'l!',
@@ -69,6 +77,7 @@ class OrderCompanyController extends Controller{
             'payment_status' => 'success', // Pul olindi deb hisoblaymiz
             'delivered_at' => now(),       // Yetkazilgan vaqtni muhrlaymiz
         ]);
+        $this->notificationService->handleOrderStatusNotification($order->id, 'yetkazildi');
         return response()->json([
             'status' => true,
             'message' => 'Buyurtma muvaffaqiyatli yakunlandi. Rahmat!',
@@ -88,7 +97,7 @@ class OrderCompanyController extends Controller{
             'status' => 'canceled',
             'courier_comment' => $request->reason,
         ]);
-
+        $this->notificationService->handleOrderStatusNotification($order->id, 'canceled');
         return response()->json([
             'status' => true,
             'message' => 'Buyurtma direktor tomonidan bekor qilindi.',

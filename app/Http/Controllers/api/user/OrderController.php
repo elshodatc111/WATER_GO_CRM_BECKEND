@@ -7,10 +7,15 @@ use App\Http\Resources\OrderResource;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller{
+    protected $notificationService;
 
+    public function __construct(NotificationService $notificationService){
+        $this->notificationService = $notificationService;
+    }
     public function store(Request $request){
         $request->validate([
             'company_id' => 'required|exists:companies,id',
@@ -52,6 +57,7 @@ class OrderController extends Controller{
                     'longitude'      => $request->longitude,
                 ]);
                 $order->items()->createMany($itemsToInsert);
+                $this->notificationService->handleOrderStatusNotification($order->id, 'pending');
                 return response()->json([
                     'status'  => true,
                     'message' => 'Buyurtma muvaffaqiyatli qabul qilindi',
