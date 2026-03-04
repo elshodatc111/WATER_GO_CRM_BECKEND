@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use League\Uri\Builder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model{
     protected $fillable = [
@@ -39,7 +40,7 @@ class Company extends Model{
         return $this->hasMany(User::class);
     }
 
-    public function products(){
+    public function products(): HasMany{
         return $this->hasMany(Product::class);
     }
 
@@ -70,5 +71,10 @@ class Company extends Model{
     public function hasUnlimitedDelivery(): bool{
         return is_null($this->delivery_radius);
     }
+
+    public function scopeByRating($query){
+        return $query->orderBy('rating', 'desc');
+    }
+
 
 }

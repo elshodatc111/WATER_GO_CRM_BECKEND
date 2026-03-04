@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Emploes\AuthEmploesController;
 use App\Http\Controllers\api\emploes\DiriktorController;
+use App\Http\Controllers\api\user\CompanyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/employees')->group(function () {
@@ -18,4 +19,11 @@ Route::prefix('v1/employees')->group(function () {
         Route::post('setting/company/update-status', [DiriktorController::class, 'updateCompanyStatus'])->name('api.v1.setting.company.update-status'); // Firma statusini yangilash
         Route::post('setting/product/update-status', [DiriktorController::class, 'updateProductStatus'])->name('api.v1.setting.product.update-status'); // product statusini yangilash
     });
+});
+
+Route::prefix('v1/user')->group(function () {
+    //Route::post('login', [AuthEmploesController::class, 'login'])->name('api.v1.employees.login');
+    Route::get('companies', [CompanyController::class, 'allCompany']);
+    Route::get('companiee/{id}', [CompanyController::class, 'companyShow']);
+    
 });
