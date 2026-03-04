@@ -2,8 +2,7 @@
 
 use App\Http\Controllers\Api\Emploes\AuthEmploesController;
 use App\Http\Controllers\api\emploes\DiriktorController;
-use App\Http\Controllers\api\user\AuthController;
-use App\Http\Controllers\api\user\CompanyController;
+use App\Http\Controllers\api\user\{AuthController,CompanyController,OrderController};
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/employees')->group(function () {
@@ -23,13 +22,17 @@ Route::prefix('v1/employees')->group(function () {
 });
 
 Route::prefix('v1/user')->group(function () {
-    Route::post('/auth/send-otp', [AuthController::class, 'sendOtp']);
-    Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::get('companies', [CompanyController::class, 'allCompany']);
-    Route::get('companiee/{id}', [CompanyController::class, 'companyShow']);
+    Route::post('/auth/send-otp', [AuthController::class, 'sendOtp']); // SMS yuborish
+    Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']); // SMS tasdiqlash
+    Route::get('companies', [CompanyController::class, 'allCompany']); // Firmalar
+    Route::get('companiee/{id}', [CompanyController::class, 'companyShow']); // Firma haqida
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/profile', [AuthController::class, 'profile']);
-        Route::get('/auth/check', [AuthController::class, 'checkToken']);
-        Route::post('/profile/update', [AuthController::class, 'updateProfile']);
+        Route::get('/profile', [AuthController::class, 'profile']); // Profile
+        Route::get('/auth/check', [AuthController::class, 'checkToken']); // Tokenni tekshirish
+        Route::post('/profile/update', [AuthController::class, 'updateProfile']); // Profile Update
+        Route::get('/orders', [OrderController::class, 'index']); // Barcha buyurtmalar
+        Route::get('/orders/{id}', [OrderController::class, 'show']); // Buyurtma haqida
+        Route::post('/orders', [OrderController::class, 'store']); // Yangi buyurtma
+        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']); // Buyurtmani bekor qilish
     });
 });
