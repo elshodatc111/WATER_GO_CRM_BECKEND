@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\api\emploes\company;
 
+use Faker\Provider\Lorem;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductStatusRequest extends FormRequest{
