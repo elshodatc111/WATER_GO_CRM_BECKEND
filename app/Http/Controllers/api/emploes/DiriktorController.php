@@ -4,7 +4,9 @@ namespace App\Http\Controllers\api\emploes;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\api\emploes\company\CreateEmploesRequest;
+use App\Http\Requests\api\emploes\company\UpdateCompanyStatusRequest;
 use App\Http\Requests\api\emploes\company\UpdateEmployeeStatusRequest;
+use App\Http\Requests\api\emploes\company\UpdateProductStatusRequest;
 use App\Models\Company;
 use App\Models\CompanyBalanceTransaction;
 use App\Models\Product;
@@ -96,6 +98,34 @@ class DiriktorController extends Controller{
                 'name' => $employee->name,
                 'is_active' => $employee->is_active
             ]
+        ]);
+    }
+
+    public function updateCompanyStatus(UpdateCompanyStatusRequest $request){
+        $director = auth()->user();
+        $company = Company::where('id', $director->company_id)->first();
+        $company->is_active = $request->is_active;
+        $company->save();
+        return response()->json([
+            'success' => true,
+            'message' => "Komaniya statusi muvaffaqiyatli yangilandi.",
+        ]);
+    }
+
+    public function updateProductStatus(UpdateProductStatusRequest $request){
+        $director = auth()->user();
+        $product = Product::where('id', $request->product_id)->where('company_id', $director->company_id)->first();
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maxsulot topilmadi yoki sizda uni tahrirlash huquqi yo‘q.'
+            ], 403);
+        }
+        $product->is_active = $request->is_active;
+        $product->save();
+        return response()->json([
+            'success' => true,
+            'message' => "Maxsulot statusi muvaffaqiyatli yangilandi.",
         ]);
     }
 
