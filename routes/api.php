@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Emploes\AuthEmploesController;
 use App\Http\Controllers\api\emploes\DiriktorController;
+use App\Http\Controllers\api\user\AuthController;
 use App\Http\Controllers\api\user\CompanyController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,8 +23,13 @@ Route::prefix('v1/employees')->group(function () {
 });
 
 Route::prefix('v1/user')->group(function () {
-    //Route::post('login', [AuthEmploesController::class, 'login'])->name('api.v1.employees.login');
+    Route::post('/auth/send-otp', [AuthController::class, 'sendOtp']);
+    Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::get('companies', [CompanyController::class, 'allCompany']);
     Route::get('companiee/{id}', [CompanyController::class, 'companyShow']);
-    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/profile', [AuthController::class, 'profile']);
+        Route::get('/auth/check', [AuthController::class, 'checkToken']);
+        Route::post('/profile/update', [AuthController::class, 'updateProfile']);
+    });
 });
