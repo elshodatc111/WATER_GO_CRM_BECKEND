@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\user;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
@@ -16,6 +17,7 @@ class OrderController extends Controller{
     public function __construct(NotificationService $notificationService){
         $this->notificationService = $notificationService;
     }
+    
     public function store(Request $request){
         $request->validate([
             'company_id' => 'required|exists:companies,id',
@@ -28,6 +30,7 @@ class OrderController extends Controller{
         ]);
         try {
             return DB::transaction(function () use ($request) {
+                $company = Company::findOrFail($request->company_id);
                 $totalPrice = 0;
                 $totalCount = 0;
                 $itemsToInsert = [];
@@ -57,6 +60,11 @@ class OrderController extends Controller{
                     'longitude'      => $request->longitude,
                 ]);
                 $order->items()->createMany($itemsToInsert);
+                $company = Company::findOrFail($request->company_id);
+                $service_fee = $company->service_fee;
+                $company->balance = $company->balance - $service_fee;
+                $company->save();
+                $company->decrement('balance', $company->service_fee);
                 $this->notificationService->handleOrderStatusNotification($order->id, 'pending');
                 return response()->json([
                     'status'  => true,
@@ -84,21 +92,16 @@ class OrderController extends Controller{
     }
 
     public function cancel(Request $request, $id){
-        $order = Order::where('user_id', $request->user()->id)->findOrFail($id);
-        if ($order->status !== 'pending') {
+        $order = Order::where('user_id', $request->user()->id)->where('status', 'pending')->findOrFail($id);
+        return DB::transaction(function () use ($order) {
+            $order->update(['status' => 'canceled']);
+            $order->company->increment('balance', $order->company->service_fee);
+            $this->notificationService->handleOrderStatusNotification($order->id, 'canceled');
             return response()->json([
-                'status' => false,
-                'message' => 'Bu buyurtmani bekor qilib bo\'lmaydi, chunki u allaqachon qabul qilingan yoki yetkazilgan.'
-            ], 422);
-        }
-        $order->update([
-            'status' => 'canceled'
-        ]);
-        return response()->json([
-            'status' => true,
-            'message' => 'Buyurtma muvaffaqiyatli bekor qilindi.',
-            'order' => new OrderResource($order)
-        ]);
+                'status' => true,
+                'message' => 'Buyurtma bekor qilindi, xizmat haqi balansingizga qaytarildi.'
+            ]);
+        });
     }
 
 }
