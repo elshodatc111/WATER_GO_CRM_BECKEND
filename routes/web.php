@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\web\{AuthController, CompanyController, HomeController, ProductController};
+use App\Http\Controllers\web\{AuthController, CompanyController, HomeController, OrderController, ProductController};
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login',[AuthController::class, 'showLogin'])->name('login');
@@ -29,5 +29,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/product/update', [ProductController::class, 'update'])->name('product_update');
     Route::post('/product/update/image', [ProductController::class, 'updateImage'])->name('product_update_image');
     Route::post('/product/update/banner', [ProductController::class, 'updateBanner'])->name('product_update_banner');
+
+    Route::get('/orders/new', [OrderController::class, 'new'])->name('orders_new');
+    Route::get('/orders/active', [OrderController::class, 'active'])->name('orders_active');
+    Route::get('/orders/end', [OrderController::class, 'end'])->name('orders_end');
+    Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders_show');
 
 });
