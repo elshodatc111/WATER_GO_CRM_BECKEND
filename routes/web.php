@@ -7,8 +7,10 @@ Route::get('/login',[AuthController::class, 'showLogin'])->name('login');
 Route::post('/login/check',[AuthController::class, 'login'])->name('login_check');
 
 Route::middleware(['auth', 'admin'])->group(function () {
+    
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', [HomeController::class, 'home'])->name('home');
+
     Route::get('/companyee', [CompanyController::class, 'companyee'])->name('companyee');
     Route::POST('/company/create', [CompanyController::class, 'store'])->name('companye_create');
     Route::get('/companye/show/{id}', [CompanyController::class, 'show'])->name('companye_show');
@@ -30,9 +32,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/product/update/image', [ProductController::class, 'updateImage'])->name('product_update_image');
     Route::post('/product/update/banner', [ProductController::class, 'updateBanner'])->name('product_update_banner');
 
-    Route::get('/orders/new', [OrderController::class, 'new'])->name('orders_new');
-    Route::get('/orders/active', [OrderController::class, 'active'])->name('orders_active');
-    Route::get('/orders/end', [OrderController::class, 'end'])->name('orders_end');
-    Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders_show');
+    Route::get('/orders/new', [OrderController::class, 'new'])->name('orders_new'); // Yangi buyurtmalar
+    Route::get('/orders/active', [OrderController::class, 'active'])->name('orders_active'); // Aktiv buyurtmalar
+    Route::get('/orders/end', [OrderController::class, 'end'])->name('orders_end'); // Yakunlangan buyurtmalar
+    Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders_show');  // Buyurtma haqida
 
 });
