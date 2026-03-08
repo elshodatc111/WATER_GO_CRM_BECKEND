@@ -36,5 +36,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/orders/active', [OrderController::class, 'active'])->name('orders_active'); // Aktiv buyurtmalar
     Route::get('/orders/end', [OrderController::class, 'end'])->name('orders_end'); // Yakunlangan buyurtmalar
     Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders_show');  // Buyurtma haqida
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('orders_cancel');  // Admin bekor qilish
 
 });

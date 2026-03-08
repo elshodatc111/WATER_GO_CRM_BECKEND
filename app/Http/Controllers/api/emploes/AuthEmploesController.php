@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class AuthEmploesController extends Controller{
     /**
@@ -35,6 +36,46 @@ class AuthEmploesController extends Controller{
     | LOGIN
     |--------------------------------------------------------------------------
     */
+    #[OA\Post(
+        path: "/v1/employees/login",
+        summary: "Direktor yoki kuryer uchun login",
+        description: "Xodim (director/courier) telefon va parol orqali tizimga kiradi. Faqat kompaniyaga biriktirilgan va aktiv bo‘lgan xodimlarga ruxsat beriladi.",
+        tags: ["Xodim – Autentifikatsiya"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["phone","password"],
+                properties: [
+                    new OA\Property(
+                        property: "phone",
+                        type: "string",
+                        example: "+998901234567",
+                        description: "Xodim telefon raqami"
+                    ),
+                    new OA\Property(
+                        property: "password",
+                        type: "string",
+                        example: "password",
+                        description: "Xodim paroli"
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Kirish muvaffaqiyatli, token va user maʼlumotlari qaytarildi"
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Telefon yoki parol noto‘g‘ri"
+            ),
+            new OA\Response(
+                response: 403,
+                description: "Hisob bloklangan, o‘chirilgan yoki kompaniya faol emas"
+            )
+        ]
+    )]
     public function login(LoginRequest $request): JsonResponse{
         // SoftDelete bo'lganlarni ham tekshirish uchun withTrashed() kerak
         $user = User::withTrashed()->with('company')->where('phone', $request->phone)->first();
@@ -68,6 +109,22 @@ class AuthEmploesController extends Controller{
     | PROFILE
     |--------------------------------------------------------------------------
     */
+    #[OA\Get(
+        path: "/v1/employees/profile",
+        summary: "Joriy xodim profilini olish",
+        security: [["sanctum" => []]],
+        tags: ["Xodim – Profil"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Xodim va uning kompaniyasi haqidagi qisqa maʼlumotlar"
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Token noto‘g‘ri yoki yuborilmagan"
+            )
+        ]
+    )]
     public function profile(): JsonResponse    {
         $user = auth()->user()->loadMissing('company');        
         return response()->json([
@@ -90,6 +147,18 @@ class AuthEmploesController extends Controller{
     | LOGOUT
     |--------------------------------------------------------------------------
     */
+    #[OA\Post(
+        path: "/v1/employees/logout",
+        summary: "Xodimni tizimdan chiqarish",
+        security: [["sanctum" => []]],
+        tags: ["Xodim – Autentifikatsiya"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Sessiya yopildi, token bekor qilindi"
+            )
+        ]
+    )]
     public function logout(): JsonResponse{
         auth()->user()->currentAccessToken()?->delete();        
         return response()->json([
@@ -102,6 +171,51 @@ class AuthEmploesController extends Controller{
     | SESSION CHECK (1 DEVICE POLICY)
     |--------------------------------------------------------------------------
     */
+    #[OA\Post(
+        path: "/v1/employees/session-check",
+        summary: "Sessiyani tekshirish (1 qurilma siyosati)",
+        description: "Berilgan FCM token bo‘yicha boshqa foydalanuvchi sessiyalarini yopib, joriy foydalanuvchi uchun bitta aktiv qurilma qoldiradi.",
+        security: [["sanctum" => []]],
+        tags: ["Xodim – Autentifikatsiya"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["fcm_token"],
+                properties: [
+                    new OA\Property(
+                        property: "fcm_token",
+                        type: "string",
+                        example: "fcm-token-here",
+                        description: "Qurilmaning Firebase Cloud Messaging tokeni"
+                    ),
+                    new OA\Property(
+                        property: "device_type",
+                        type: "string",
+                        nullable: true,
+                        example: "android",
+                        description: "Qurilma turi: android yoki ios"
+                    ),
+                    new OA\Property(
+                        property: "device_name",
+                        type: "string",
+                        nullable: true,
+                        example: "Samsung A54",
+                        description: "Qurilmaning nomi"
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Sessiya muvaffaqiyatli yangilandi va bog‘landi"
+            ),
+            new OA\Response(
+                response: 403,
+                description: "Hisob bloklangan, o‘chirilgan yoki kompaniya faol emas"
+            )
+        ]
+    )]
     public function sessionCheck(Request $request): JsonResponse    {
         $request->validate([
             'fcm_token'   => 'required|string',

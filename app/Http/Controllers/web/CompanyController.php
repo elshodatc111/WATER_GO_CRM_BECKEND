@@ -61,12 +61,44 @@ class CompanyController extends Controller{
         return back()->with('success', 'Firma muvaffaqiyatli qo‘shildi');
     }
 
-    public function show($id){
+    public function show(Request $request, $id){
         $company = Company::findOrFail($id);
-        $users = User::where('company_id',$id)->orderby('role','asc')->get();
-        $products = Product::where('company_id',$id)->get();
-        $transactions = CompanyBalanceTransaction::with('creator')->where('company_id', $id)->latest()->get();
-        return view('company.show',compact('company','users','products','transactions'));
+
+        $employeeRole = $request->input('employee_role');
+        $employeeStatus = $request->input('employee_status');
+        $productStatus = $request->input('product_status');
+        $searchEmployee = $request->input('employee_search');
+        $searchProduct = $request->input('product_search');
+
+        $usersQuery = User::where('company_id',$id)->orderBy('role','asc');
+        if ($employeeRole) {
+            $usersQuery->where('role', $employeeRole);
+        }
+        if ($employeeStatus !== null && $employeeStatus !== '') {
+            $usersQuery->where('is_active', $employeeStatus === 'active');
+        }
+        if ($searchEmployee) {
+            $usersQuery->where(function($q) use ($searchEmployee) {
+                $q->where('name','like',"%{$searchEmployee}%")
+                  ->orWhere('phone','like',"%{$searchEmployee}%");
+            });
+        }
+        $users = $usersQuery->paginate(10, ['*'], 'employees_page')->withQueryString();
+
+        $productsQuery = Product::where('company_id',$id)->orderBy('created_at','desc');
+        if ($productStatus !== null && $productStatus !== '') {
+            $productsQuery->where('is_active', $productStatus === 'active');
+        }
+        if ($searchProduct) {
+            $productsQuery->where('name','like',"%{$searchProduct}%");
+        }
+        $products = $productsQuery->paginate(10, ['*'], 'products_page')->withQueryString();
+
+        $transactions = CompanyBalanceTransaction::with('creator')
+            ->where('company_id', $id)->latest()->get();
+
+        return view('company.show',compact('company','users','products','transactions',
+            'employeeRole','employeeStatus','productStatus','searchEmployee','searchProduct'));
     }
 
     public function update(UpdateCompanyRequest $request){

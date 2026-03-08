@@ -243,7 +243,19 @@
       <div class="col-lg-8">
         <div class="card">
           <div class="card-body">
-            <h2 class="card-title">Firma barcha maxsulotlari</h2>
+            <div class="d-flex justify-content-between align-items-center">
+              <h2 class="card-title mb-0">Firma barcha maxsulotlari</h2>
+              <form action="{{ route('companye_show', $company['id']) }}" method="GET" class="d-flex gap-2">
+                <input type="hidden" name="employees_page" value="{{ request('employees_page') }}">
+                <input type="text" name="product_search" value="{{ $searchProduct ?? '' }}" class="form-control form-control-sm" placeholder="Mahsulot nomi...">
+                <select name="product_status" class="form-select form-select-sm">
+                  <option value="">Barchasi</option>
+                  <option value="active" {{ ($productStatus ?? '')=='active' ? 'selected' : '' }}>Aktiv</option>
+                  <option value="inactive" {{ ($productStatus ?? '')=='inactive' ? 'selected' : '' }}>Bloklangan</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary" type="submit">Filter</button>
+              </form>
+            </div>
             <div class="notes-wrapper" style="max-height: 460px; overflow-y: auto; overflow-x: hidden;">
               <div class="table-responsive">
                 <table class="table table-bordered" style="font-size: 14px">
@@ -260,7 +272,7 @@
                   <tbody>
                     @forelse($products as $item)
                       <tr>
-                        <td class="text-center">{{ $loop->index+1 }}</td>
+                        <td class="text-center">{{ ($products->currentPage()-1) * $products->perPage() + $loop->iteration }}</td>
                         <td class="text-center">
                           <img src="{{ asset($item['image']) }}" style="width: 36px">
                         </td>
@@ -305,6 +317,9 @@
                   </tbody>
                 </table>
               </div>
+              <div class="d-flex justify-content-center mt-2">
+                {{ $products->appends(['employee_search' => $searchEmployee ?? null, 'employee_role' => $employeeRole ?? null, 'employee_status' => $employeeStatus ?? null])->links('pagination::bootstrap-5') }}
+              </div>
             </div>
           </div>
         </div>
@@ -336,7 +351,24 @@
       <div class="col-lg-8">
         <div class="card">
           <div class="card-body">
-            <h2 class="card-title">Firma barcha hodimlari</h2>
+            <div class="d-flex justify-content-between align-items-center">
+              <h2 class="card-title mb-0">Firma barcha hodimlari</h2>
+              <form action="{{ route('companye_show', $company['id']) }}" method="GET" class="d-flex gap-2">
+                <input type="hidden" name="products_page" value="{{ request('products_page') }}">
+                <input type="text" name="employee_search" value="{{ $searchEmployee ?? '' }}" class="form-control form-control-sm" placeholder="Ism yoki telefon...">
+                <select name="employee_role" class="form-select form-select-sm">
+                  <option value="">Barcha rollar</option>
+                  <option value="director" {{ ($employeeRole ?? '')=='director' ? 'selected' : '' }}>Direktor</option>
+                  <option value="courier" {{ ($employeeRole ?? '')=='courier' ? 'selected' : '' }}>Xaydovchi</option>
+                </select>
+                <select name="employee_status" class="form-select form-select-sm">
+                  <option value="">Barchasi</option>
+                  <option value="active" {{ ($employeeStatus ?? '')=='active' ? 'selected' : '' }}>Aktiv</option>
+                  <option value="inactive" {{ ($employeeStatus ?? '')=='inactive' ? 'selected' : '' }}>Bloklangan</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary" type="submit">Filter</button>
+              </form>
+            </div>
             <div class="notes-wrapper" style="max-height: 290px; overflow-y: auto; overflow-x: hidden;">
               <div class="table-responsive">
                 <table class="table table-bordered" style="font-size: 14px">
@@ -353,7 +385,7 @@
                   <tbody>
                     @forelse($users as $item)
                       <tr>
-                        <td class="text-center">{{ $loop->index+1 }}</td>
+                        <td class="text-center">{{ ($users->currentPage()-1) * $users->perPage() + $loop->iteration }}</td>
                         <td>{{ $item['name'] }}</td>
                         <td class="text-center">{{ $item['phone'] }}</td>
                         <td class="text-center">
@@ -406,6 +438,9 @@
                     @endforelse
                   </tbody>
                 </table>
+              </div>
+              <div class="d-flex justify-content-center mt-2">
+                {{ $users->appends(['product_search' => $searchProduct ?? null, 'product_status' => $productStatus ?? null])->links('pagination::bootstrap-5') }}
               </div>
             </div>
           </div>

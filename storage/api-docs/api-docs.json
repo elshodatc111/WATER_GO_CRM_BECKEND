@@ -1,0 +1,815 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Suv yetkazib berish API",
+        "description": "Mobil ilovalar uchun suv yetkazib berish tizimining rasmiy API hujjatlari. Barcha endpointlar Uzbek tilida izohlangan bo‘lib, mijoz (user) va xodim (director/courier) ilovalari uchun mo‘ljallangan.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "Asosiy API server (Laravel backend ichidagi /api prefiksi bilan)"
+        }
+    ],
+    "paths": {
+        "/v1/employees/login": {
+            "post": {
+                "tags": [
+                    "Xodim – Autentifikatsiya"
+                ],
+                "summary": "Direktor yoki kuryer uchun login",
+                "description": "Xodim (director/courier) telefon va parol orqali tizimga kiradi. Faqat kompaniyaga biriktirilgan va aktiv bo‘lgan xodimlarga ruxsat beriladi.",
+                "operationId": "61468c6dcbe5e6291f3184298d1e1199",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "description": "Xodim telefon raqami",
+                                        "type": "string",
+                                        "example": "+998901234567"
+                                    },
+                                    "password": {
+                                        "description": "Xodim paroli",
+                                        "type": "string",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kirish muvaffaqiyatli, token va user maʼlumotlari qaytarildi"
+                    },
+                    "401": {
+                        "description": "Telefon yoki parol noto‘g‘ri"
+                    },
+                    "403": {
+                        "description": "Hisob bloklangan, o‘chirilgan yoki kompaniya faol emas"
+                    }
+                }
+            }
+        },
+        "/v1/employees/profile": {
+            "get": {
+                "tags": [
+                    "Xodim – Profil"
+                ],
+                "summary": "Joriy xodim profilini olish",
+                "operationId": "37f2a330b7ae740642b83137d6c8ef5d",
+                "responses": {
+                    "200": {
+                        "description": "Xodim va uning kompaniyasi haqidagi qisqa maʼlumotlar"
+                    },
+                    "401": {
+                        "description": "Token noto‘g‘ri yoki yuborilmagan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/logout": {
+            "post": {
+                "tags": [
+                    "Xodim – Autentifikatsiya"
+                ],
+                "summary": "Xodimni tizimdan chiqarish",
+                "operationId": "f2ca447c93e3dca4b3d0141b1fac150e",
+                "responses": {
+                    "200": {
+                        "description": "Sessiya yopildi, token bekor qilindi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/session-check": {
+            "post": {
+                "tags": [
+                    "Xodim – Autentifikatsiya"
+                ],
+                "summary": "Sessiyani tekshirish (1 qurilma siyosati)",
+                "description": "Berilgan FCM token bo‘yicha boshqa foydalanuvchi sessiyalarini yopib, joriy foydalanuvchi uchun bitta aktiv qurilma qoldiradi.",
+                "operationId": "6bcce05ca4ff64f3b880f53f4ef3c153",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fcm_token"
+                                ],
+                                "properties": {
+                                    "fcm_token": {
+                                        "description": "Qurilmaning Firebase Cloud Messaging tokeni",
+                                        "type": "string",
+                                        "example": "fcm-token-here"
+                                    },
+                                    "device_type": {
+                                        "description": "Qurilma turi: android yoki ios",
+                                        "type": "string",
+                                        "example": "android",
+                                        "nullable": true
+                                    },
+                                    "device_name": {
+                                        "description": "Qurilmaning nomi",
+                                        "type": "string",
+                                        "example": "Samsung A54",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sessiya muvaffaqiyatli yangilandi va bog‘landi"
+                    },
+                    "403": {
+                        "description": "Hisob bloklangan, o‘chirilgan yoki kompaniya faol emas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/orders": {
+            "get": {
+                "tags": [
+                    "Xodim – Buyurtmalar"
+                ],
+                "summary": "Kompaniya buyurtmalarini ko‘rish (direktor/kuryer)",
+                "description": "Direktor barcha kompaniya buyurtmalarini status bo‘yicha filtrlashi mumkin. Kuryer faqat o‘zi olishi mumkin bo‘lgan va o‘zi biriktirilgan aktiv buyurtmalarni ko‘radi.",
+                "operationId": "e9bbdf195ca4b3e96d310cccaec3ca4d",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Faqat direktor uchun: buyurtma statusi bo‘yicha filter (pending, qabul_qilindi, yetkazilmoqda, yetkazildi, canceled)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "pending"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtmalar ro‘yxati muvaffaqiyatli qaytarildi"
+                    },
+                    "403": {
+                        "description": "Ruxsatsiz foydalanuvchi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/orders/{id}/approve": {
+            "post": {
+                "tags": [
+                    "Xodim – Buyurtmalar"
+                ],
+                "summary": "Direktor tomonidan buyurtmani tasdiqlash",
+                "description": "Holati pending bo‘lgan buyurtmani direktor qabul qiladi (`qabul_qilindi`). Shundan so‘ng kuryer uni olish imkoniyatiga ega bo‘ladi.",
+                "operationId": "251b6aef60a1a5ca2401df4ee0f09a30",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma tasdiqlandi"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki tasdiqlab bo‘lmaydi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/orders/{id}/take": {
+            "post": {
+                "tags": [
+                    "Xodim – Buyurtmalar"
+                ],
+                "summary": "Kuryer tomonidan buyurtmani qabul qilish",
+                "description": "Holati `qabul_qilindi` bo‘lgan va hali kuryer biriktirilmagan buyurtmani kuryer (yoki direktor) o‘ziga oladi va holat `yetkazilmoqda` ga o‘zgaradi.",
+                "operationId": "a9bf33b98c5c2be89f71e268715e549e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma kuryerga biriktirildi"
+                    },
+                    "403": {
+                        "description": "Kuryer uchun ruxsat yo‘q"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki allaqachon band qilingan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/orders/{id}/complete": {
+            "post": {
+                "tags": [
+                    "Xodim – Buyurtmalar"
+                ],
+                "summary": "Buyurtmani yakunlash (yetkazildi deb belgilash)",
+                "description": "Kuryer o‘zi biriktirilgan va holati `yetkazilmoqda` bo‘lgan buyurtmani yetkazildi deb belgilaydi.",
+                "operationId": "074dfb91134a6bd95d5b3c1b36d438ff",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma muvaffaqiyatli yakunlandi"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki kuryerga tegishli emas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/employees/orders/{id}/cancel": {
+            "post": {
+                "tags": [
+                    "Xodim – Buyurtmalar"
+                ],
+                "summary": "Direktor tomonidan buyurtmani bekor qilish",
+                "description": "Direktor pending, qabul_qilindi yoki yetkazilmoqda holatidagi buyurtmani bekor qilishi mumkin. Sabab `reason` maydonida yuboriladi.",
+                "operationId": "16103eb348a26d0437fda16bc46d5e9d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reason"
+                                ],
+                                "properties": {
+                                    "reason": {
+                                        "description": "Bekor qilish sababi (maks. 255 belgi)",
+                                        "type": "string",
+                                        "example": "Mijoz buyurtmani bekor qildi"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma direktor tomonidan bekor qilindi"
+                    },
+                    "403": {
+                        "description": "Faqat direktor ushbu amalni bajara oladi"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki bekor qilib bo‘lmaydi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/auth/send-otp": {
+            "post": {
+                "tags": [
+                    "Mijoz – Autentifikatsiya"
+                ],
+                "summary": "Mijozga OTP SMS yuborish",
+                "description": "Berilgan telefon raqami bo‘yicha mijozni yaratadi (agar mavjud bo‘lmasa) va unga bir martalik tasdiqlash kodi (OTP) yuboradi. Hozircha demo rejimda 123456 kod ishlatiladi.",
+                "operationId": "0f6734d8cfb4d6ca14a03f67e3dc37ef",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "description": "Mijozning telefon raqami, xalqaro formatda (+998...)",
+                                        "type": "string",
+                                        "example": "+998901234567"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kod yuborildi"
+                    },
+                    "422": {
+                        "description": "Valdatsiya xatosi (telefon kiritilmagan yoki noto‘g‘ri format)"
+                    }
+                }
+            }
+        },
+        "/v1/user/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "Mijoz – Autentifikatsiya"
+                ],
+                "summary": "OTP kodni tasdiqlash va token olish",
+                "description": "Mijoz kiritgan SMS kodi to‘g‘ri bo‘lsa, unga Sanctum access token qaytaradi. Shuningdek FCM token va qurilma maʼlumotlari ham saqlanishi mumkin.",
+                "operationId": "3cdd8eca54285dd29622209880f0d91e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "description": "Mijoz telefon raqami",
+                                        "type": "string",
+                                        "example": "+998901234567"
+                                    },
+                                    "code": {
+                                        "description": "SMS orqali yuborilgan 6 xonali kod",
+                                        "type": "string",
+                                        "example": "123456"
+                                    },
+                                    "fcm_token": {
+                                        "description": "Push bildirishnomalar uchun Firebase token (ixtiyoriy)",
+                                        "type": "string",
+                                        "example": "fcm-token-here",
+                                        "nullable": true
+                                    },
+                                    "device_type": {
+                                        "description": "Qurilma turi: android yoki ios",
+                                        "type": "string",
+                                        "example": "android",
+                                        "nullable": true
+                                    },
+                                    "device_name": {
+                                        "description": "Qurilmaning nomi (modeli)",
+                                        "type": "string",
+                                        "example": "Samsung A54",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token va foydalanuvchi maʼlumotlari muvaffaqiyatli qaytarildi"
+                    },
+                    "422": {
+                        "description": "Kod xato yoki muddati tugagan"
+                    }
+                }
+            }
+        },
+        "/v1/user/profile": {
+            "get": {
+                "tags": [
+                    "Mijoz – Profil"
+                ],
+                "summary": "Joriy mijoz profilini olish",
+                "operationId": "029d09682c281a786413cdfa85ea1fff",
+                "responses": {
+                    "200": {
+                        "description": "Mijoz profili maʼlumotlari"
+                    },
+                    "401": {
+                        "description": "Token noto‘g‘ri yoki yuborilmagan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/auth/check": {
+            "get": {
+                "tags": [
+                    "Mijoz – Autentifikatsiya"
+                ],
+                "summary": "Token holatini tekshirish",
+                "description": "Berilgan Bearer token orqali foydalanuvchi hali aktiv ekanligini tekshiradi.",
+                "operationId": "5de530485ec7336d71e48be5480e59f6",
+                "responses": {
+                    "200": {
+                        "description": "Token aktiv va foydalanuvchi maʼlumotlari qaytarildi"
+                    },
+                    "401": {
+                        "description": "Token noto‘g‘ri yoki muddati tugagan"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/profile/update": {
+            "post": {
+                "tags": [
+                    "Mijoz – Profil"
+                ],
+                "summary": "Mijoz profilini yangilash",
+                "operationId": "b242ab76b50c3f14091905ee42ec9bee",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Yangi ism, kamida 3 ta harf",
+                                        "type": "string",
+                                        "example": "Ali Valiyev"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil muvaffaqiyatli yangilandi"
+                    },
+                    "422": {
+                        "description": "Valdatsiya xatosi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/companies": {
+            "get": {
+                "tags": [
+                    "Mijoz – Kompaniyalar"
+                ],
+                "summary": "Barcha aktiv suv firmalar ro‘yxati",
+                "description": "Mijoz ilovasi uchun barcha aktiv firmalar (kompaniyalar) ro‘yxatini qaytaradi. Reyting bo‘yicha saralangan.",
+                "operationId": "9ec3637c4505fdb61e5e1e29fe086095",
+                "responses": {
+                    "200": {
+                        "description": "Firmalar ro‘yxati muvaffaqiyatli qaytarildi"
+                    }
+                }
+            }
+        },
+        "/v1/user/companiee/{id}": {
+            "get": {
+                "tags": [
+                    "Mijoz – Kompaniyalar"
+                ],
+                "summary": "Bitta firma haqida batafsil maʼlumot",
+                "description": "Berilgan ID bo‘yicha firmaga tegishli asosiy maʼlumotlar va faqat aktiv mahsulotlar ro‘yxatini qaytaradi.",
+                "operationId": "3a18d731e9fde69cb90012bbce81f466",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Firma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Firma topildi va maʼlumotlar qaytarildi"
+                    },
+                    "404": {
+                        "description": "Firma topilmadi yoki aktiv emas"
+                    }
+                }
+            }
+        },
+        "/v1/user/orders": {
+            "get": {
+                "tags": [
+                    "Mijoz – Buyurtmalar"
+                ],
+                "summary": "Mijozning barcha buyurtmalari ro‘yxati",
+                "operationId": "4acaf0b5ddb1d358c53bd3504787cfa7",
+                "responses": {
+                    "200": {
+                        "description": "Buyurtmalar ro‘yxati muvaffaqiyatli qaytarildi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Mijoz – Buyurtmalar"
+                ],
+                "summary": "Yangi buyurtma yaratish",
+                "description": "Mijoz tanlangan firma va mahsulotlar bo‘yicha yangi buyurtma yaratadi. Xizmat haqi firma balansidan ushlab qolinadi.",
+                "operationId": "d3bf9b1f5e7413a90135277ad77edf21",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "company_id",
+                                    "address",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "company_id": {
+                                        "description": "Buyurtma yuborilayotgan firma ID si",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "address": {
+                                        "description": "Yetkazib berish manzili",
+                                        "type": "string",
+                                        "example": "Toshkent shahri, Chilonzor tumani, 1-daha"
+                                    },
+                                    "latitude": {
+                                        "description": "Manzil koordinatasi (ixtiyoriy)",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 41.3111,
+                                        "nullable": true
+                                    },
+                                    "longitude": {
+                                        "description": "Manzil koordinatasi (ixtiyoriy)",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 69.2797,
+                                        "nullable": true
+                                    },
+                                    "payment_method": {
+                                        "description": "To‘lov usuli (masalan: cash)",
+                                        "type": "string",
+                                        "example": "cash",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "description": "Buyurtma tarkibidagi mahsulotlar ro‘yxati",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_id": {
+                                                    "description": "Mahsulot ID si",
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "quantity": {
+                                                    "description": "Mahsulot soni",
+                                                    "type": "integer",
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Buyurtma muvaffaqiyatli qabul qilindi"
+                    },
+                    "422": {
+                        "description": "Valdatsiya xatosi"
+                    },
+                    "500": {
+                        "description": "Server xatosi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/orders/{id}": {
+            "get": {
+                "tags": [
+                    "Mijoz – Buyurtmalar"
+                ],
+                "summary": "Mijozning bitta buyurtmasi haqida maʼlumot",
+                "operationId": "9988fa8cb1f4bd67712960cb7d4f019c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma topildi va maʼlumotlar qaytarildi"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki ushbu mijozga tegishli emas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/user/orders/{id}/cancel": {
+            "post": {
+                "tags": [
+                    "Mijoz – Buyurtmalar"
+                ],
+                "summary": "Mijoz tomonidan buyurtmani bekor qilish",
+                "description": "Faqat holati `pending` bo‘lgan buyurtmalarni bekor qilish mumkin. Firma xizmat haqi balansga qaytariladi.",
+                "operationId": "55cc1ac62d4aaae3a41ce0295079820f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Buyurtma ID si",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buyurtma bekor qilindi va xizmat haqi qaytarildi"
+                    },
+                    "404": {
+                        "description": "Buyurtma topilmadi yoki bekor qilib bo‘lmaydi"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Bearer token bilan autentifikatsiya. Format: \\\"Bearer {token}\\\"",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Xodim – Autentifikatsiya",
+            "description": "Xodim – Autentifikatsiya"
+        },
+        {
+            "name": "Xodim – Profil",
+            "description": "Xodim – Profil"
+        },
+        {
+            "name": "Xodim – Buyurtmalar",
+            "description": "Xodim – Buyurtmalar"
+        },
+        {
+            "name": "Mijoz – Autentifikatsiya",
+            "description": "Mijoz – Autentifikatsiya"
+        },
+        {
+            "name": "Mijoz – Profil",
+            "description": "Mijoz – Profil"
+        },
+        {
+            "name": "Mijoz – Kompaniyalar",
+            "description": "Mijoz – Kompaniyalar"
+        },
+        {
+            "name": "Mijoz – Buyurtmalar",
+            "description": "Mijoz – Buyurtmalar"
+        }
+    ],
+    "security": [
+        {
+            "sanctum": []
+        }
+    ]
+}

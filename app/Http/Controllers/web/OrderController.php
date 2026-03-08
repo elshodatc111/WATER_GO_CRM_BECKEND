@@ -8,9 +8,21 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller{
     
+    public function cancel(Request $request, $id){
+        $order = Order::findOrFail($id);
+        if (!in_array($order->status, ['pending','qabul_qilindi'])) {
+            return back()->with('error', 'Faqat yangi yoki qabul qilingan buyurtmalarni bekor qilish mumkin.');
+        }
+        $order->update([
+            'status' => 'canceled',
+        ]);
+        return back()->with('success', 'Buyurtma bekor qilindi.');
+    }
+
     public function new(Request $request){
         $search = $request->input('search');
-        $orders = Order::where('status', 'pending')
+        $orders = Order::with(['company','user'])
+            ->where('status', 'pending')
             ->when($search, function ($query) use ($search) {
                 $query->where(function($q) use ($search) {
                     $q->where('address', 'like', "%{$search}%")
@@ -32,7 +44,8 @@ class OrderController extends Controller{
     public function active(Request $request){
         $search = $request->input('search');
 
-        $orders = Order::whereIn('status', ['qabul_qilindi', 'yetkazilmoqda']) // 'wherein' emas 'whereIn'
+        $orders = Order::with(['company','user'])
+            ->whereIn('status', ['qabul_qilindi', 'yetkazilmoqda']) // 'wherein' emas 'whereIn'
             ->when($search, function ($query) use ($search) {
                 $query->where(function($q) use ($search) {
                     $q->where('address', 'like', "%{$search}%")
@@ -55,7 +68,8 @@ class OrderController extends Controller{
     public function end(Request $request) {
         $search = $request->input('search');
 
-        $orders = Order::whereIn('status', ['canceled', 'yetkazildi']) 
+        $orders = Order::with(['company','user'])
+            ->whereIn('status', ['canceled', 'yetkazildi']) 
             ->when($search, function ($query) use ($search) {
                 $query->where(function($q) use ($search) {
                     $q->where('address', 'like', "%{$search}%")
@@ -76,7 +90,8 @@ class OrderController extends Controller{
     }
 
     public function show($id){
-        return view('orders.show');
+        $order = Order::with(['company','user','courier','items.product'])->findOrFail($id);
+        return view('orders.show', compact('order'));
     }
 
 }
